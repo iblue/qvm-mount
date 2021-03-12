@@ -31,8 +31,10 @@ make
 ```
 mkfifo sftp-in
 mkfifo sftp-out
-./openssh-portable-V_8_5_P1/sftp-server -d . < sftp-in > sftp-out
-./builddir/client foo:bar ./target > ../sftp-in < ../sftp-out
+mkdir source
+mkdir target
+./openssh-portable-V_8_5_P1/sftp-server -d source < sftp-in > sftp-out
+./builddir/client -o passive -o debug -o dir_cache=no localhost:/home/user/git/qvm-mount/source ./target > ./sftp-in < ./sftp-out
 ```
 
 ## License
