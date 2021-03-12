@@ -27,7 +27,7 @@ autoreconf
 make
 ```
 
-## Debugging
+## Debugging (local)
 ```
 mkfifo sftp-in
 mkfifo sftp-out
@@ -36,6 +36,17 @@ mkdir target
 ./openssh-portable-V_8_5_P1/sftp-server -d source < sftp-in > sftp-out
 ./builddir/client -o passive -o debug -o dir_cache=no localhost:/home/user/git/qvm-mount/source ./target > ./sftp-in < ./sftp-out
 ```
+
+## Debugging (remote)
+```
+mkfifo sftp-in
+mkfifo sftp-out
+mkdir source
+mkdir target
+./builddir/client -o passive -o debug -o dir_cache=no localhost:/ ./target > ./sftp-in < ./sftp-out
+qrexec-client-vm <server> test.Mount+/ <sftp-in >sftp-out
+```
+
 
 ## License
 
