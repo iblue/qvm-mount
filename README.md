@@ -10,11 +10,22 @@ Mounts remote directory if you confirm in dom0.
 
 ## Installation
 
-TODO
+Compile it yourself. First install the required tools:
+```
+sudo apt install build-essential ninja-build python3-pip libfuse3-dev libglib2.0-dev fuse3
+pip3 install --user meson
+```
+
+Then compile:
+```
+cd builddir
+meson compile
+```
+
 
 ## License
 
-TODO
+GPL2
 
 ## Inner Workings
 

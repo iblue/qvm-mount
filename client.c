@@ -145,6 +145,74 @@
 
 #define MAX_PASSWORD 1024
 
+/*
+   Handling of multiple SFTP connections
+   --------------------------------------
+   
+   An SFTP server is free to return responses to outstanding requests in arbitrary
+   order. However, execution of requests may only be re-ordered and parallelized as long
+   as "the results in the responses will be the same as if [the client] had sent the
+   requests one at a time and waited for the response in each case".
+   (https://tools.ietf.org/html/draft-ietf-secsh-filexfer-02#section-6.1).
+
+   When using multiple connections, this requirement applies independently for each
+   connection. We therefore have to make sure in SSHFS that the way in which we distribute
+   requests between connections does not affect the responses that we get.
+
+   In general, this is a tricky problem to solve since for each incoming request we have
+   to determine which other in-flight requests may interact with it, and then either
+   transmit the request through the same connection or (if there are multiple connections
+   involved) wait for the other requests to complete. This means that e.g. a readdir
+   request would have to block on most other activity in the same directory, eliminating a
+   major advantage of using multiple connections.
+   
+   In practice, we can luckily take advantage of the knowledge that most FUSE requests are
+   the result of (synchronous) syscalls from userspace that will block until the
+   corresponding FUSE response has been sent.
+   
+   If -o sshfs_sync is used, SSHFS always waits for the SFTP server response before
+   returning a FUSE response to userspace. If userspace makes concurrent system calls,
+   there is no ordering guarantee in the first place, so we do not have to worry about
+   (re-)ordering within SSHFS either.
+
+   For requests that originate in the kernel (rather than userspace), the situation is
+   slightly different. Transmission of FUSE requests and responses is decoupled (there are
+   no synchronous calls) and there is no formal specification that defines if reordering
+   is permitted. However, the Linux kernel seems to avoid submitting any concurrent
+   requests that would give different results depending on execution order and (as of
+   kernel 4.20 with writeback caching disabled) the only kind of kernel originated
+   requests are read() requests for read-ahead. Since libfuse internally uses multiple
+   threads, SSHFS does not necessarily receive requests in the order in which they were
+   sent by the kernel. Unless there is a major bug in FUSE, there is therefore no need to
+   worry about correct sequencing of such calls even when using multiple SFTP connections.
+
+   If -o sshfs_sync is *not* used, then write() syscalls will return to userspace before
+   SSHFS has received responses from the SFTP server. If userspace then issues a second
+   syscall related to the same file (and only one connection is in-use), SFTP ordering
+   guarantees will ensure that the response takes into account the preceding writes. If
+   multiple connections are in use, this has to be ensured by SSHFS instead.
+
+   The easiest way to do so would be to bind specific SFTP connections to file
+   handles. Unfortunately, not all requests for the same dentry are guaranteed to come
+   from the same file handle and some requests may come without any file handle. We
+   therefore maintain a separate mapping from currently open files to SFTP connections. If
+   a request comes in for a path contained in sshfs.conntab and its result could be
+   changed by a pending write() operation, it will always be executed with the
+   associated SFTP connection.
+
+   There are additional subtleties for requests that affect multiple paths.  For example,
+   if both source and destination of a rename() request are currently open, which
+   connection should be used?
+
+   This problem is again hard in general, but solvable since we only have to worry about
+   the effects of pending write() calls. For rename() and link(), it does not matter if a
+   pending write is executed before or after the operation. For readdir(), it is possible
+   that a pending write() will change the length of the file. However, SSHFS currently
+   does not return attribute information for readdir(), so this does not pose problems
+   either. Should SSHFS implement a readdirplus() handler (which provides file names and
+   attributes) this is a problem that will need to be solved.
+*/
+
 #ifdef __APPLE__
    static char sshfs_program_path[PATH_MAX] = { 0 };
 #endif /* __APPLE__ */
@@ -259,6 +327,7 @@ struct sshfs {
 	int dir_cache;
 	int show_version;
 	int show_help;
+	int singlethread;
 	char *mountpoint;
 	char *uid_file;
 	char *gid_file;
@@ -451,6 +520,7 @@ static struct fuse_opt sshfs_opts[] = {
 	SSHFS_OPT("-v",		verbose, 1),
 	SSHFS_OPT("verbose",	verbose, 1),
 	SSHFS_OPT("-f",		foreground, 1),
+	SSHFS_OPT("-s",		singlethread, 1),
 
 	FUSE_OPT_KEY("-p ",            KEY_PORT),
 	FUSE_OPT_KEY("-C",             KEY_COMPRESS),
@@ -4125,6 +4195,7 @@ int main(int argc, char *argv[])
 	sshfs.dir_cache = 1;
 	sshfs.show_help = 0;
 	sshfs.show_version = 0;
+	sshfs.singlethread = 0;
 	sshfs.foreground = 0;
 	sshfs.ptypassivefd = -1;
 	sshfs.delay_connect = 0;
@@ -4331,7 +4402,10 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 
-	res = fuse_loop(fuse);
+	if (sshfs.singlethread)
+		res = fuse_loop(fuse);
+	else
+		res = fuse_loop_mt(fuse, 0);
 
 	if (res != 0)
 		res = 1;
