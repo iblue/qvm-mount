@@ -39,12 +39,12 @@ mkdir target
 
 ## Debugging (remote)
 ```
+sudo cp ln -s rpc/test.Mount /etc/qubes-rpc/ # on target machine
 mkfifo sftp-in
 mkfifo sftp-out
-mkdir source
 mkdir target
 ./builddir/client -o passive -o debug -o dir_cache=no localhost:/ ./target > ./sftp-in < ./sftp-out
-qrexec-client-vm <server> test.Mount+/ <sftp-in >sftp-out
+qrexec-client-vm <server> test.Mount+/home/user <sftp-in >sftp-out
 ```
 
 

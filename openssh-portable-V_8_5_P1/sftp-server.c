@@ -1658,7 +1658,9 @@ sftp_server_main(int argc, char **argv, struct passwd *user_pw)
 			if (log_facility == SYSLOG_FACILITY_NOT_SET)
 				error("Invalid log facility \"%s\"", optarg);
 			break;
-		case 'd':
+		/* Changed to upper case to prevent security issues
+		   when wrong version is installed */
+		case 'D':
 			cp = tilde_expand_filename(optarg, user_pw->pw_uid);
 			snprintf(uidstr, sizeof(uidstr), "%llu",
 			    (unsigned long long)pw->pw_uid);
@@ -1743,6 +1745,11 @@ sftp_server_main(int argc, char **argv, struct passwd *user_pw)
 		if (chdir(homedir) != 0) {
 			error("chdir to \"%s\" failed: %s", homedir,
 			    strerror(errno));
+		}
+
+		if(chroot(homedir) != 0) {
+			error("chroot to \"%s\" failed: %s", homedir, 
+				strerror(errno));
 		}
 	}
 
