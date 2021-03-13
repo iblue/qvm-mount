@@ -26,13 +26,12 @@ PIPE=$(mktemp -u)
 mkfifo $PIPE.stdin
 mkfifo $PIPE.stdout
 
-# Welcome to the realm of undocumented testing features
 if [ "$REMOTE_QUBE" = "localhost" ]; then
+    # Welcome to the realm of undocumented testing features
     # Server needs to run as root for chroot()
     sudo qvmfs-server "$REMOTE_PATH" <$PIPE.stdin >$PIPE.stdout &
 else
-    # FIXME: qrexec something
-    0;
+    qrexec-client-vm "$REMOTE_QUBE" "qubes.MountReadWrite+$REMOTE_PATH" <$PIPE.stdin >$PIPE.stdout &
 fi
 
 qvmfs-client "$LOCAL_PATH" >$PIPE.stdin <$PIPE.stdout &
