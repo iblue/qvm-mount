@@ -18,13 +18,13 @@ sudo apt install build-essential ninja-build python3-pip libfuse3-dev libglib2.0
 pip3 install --user meson
 ```
 
-Then compile:
+Then compile and install
 ```
 mkdir -p builddir
 cd builddir
 meson compile
+meson install
 ```
-
 
 ## Testing (local)
 ```
@@ -34,7 +34,7 @@ mkdir source
 mkdir target
 # root privileges for chroot
 sudo ./builddir/server/server -l DEBUG3 -e -D /tmp < sftp-in > sftp-out
-./builddir/client/client -o passive -o debug -o dir_cache=no localhost:/ ./target > ./sftp-in < ./sftp-out
+./builddir/client/qvmfs-client ./target > ./sftp-in < ./sftp-out
 ```
 
 ## Debugging (local)
@@ -45,7 +45,7 @@ mkdir source
 mkdir target
 gdb ./builddir/server/server
 (gdb) run -l DEBUG3 -e -D /tmp < sftp-in > sftp-out
-./builddir/client/client  -o passive -o debug -o dir_cache=no localhost:/ ./target > ./sftp-in < ./sftp-out
+./builddir/client/qvmfs-client -o debug ./target > ./sftp-in < ./sftp-out
 ```
 
 ## Debugging (remote)
@@ -54,7 +54,7 @@ sudo cp ln -s rpc/test.Mount /etc/qubes-rpc/ # on target machine
 mkfifo sftp-in
 mkfifo sftp-out
 mkdir target
-./builddir/client/client -o passive -o debug -o dir_cache=no localhost:/ ./target > ./sftp-in < ./sftp-out
+./builddir/client/qvmfs-client -o debug ./target > ./sftp-in < ./sftp-out
 qrexec-client-vm <server> test.Mount+/home/user <sftp-in >sftp-out
 ```
 

@@ -3592,7 +3592,7 @@ static struct fuse_operations sshfs_oper = {
 static void usage(const char *progname)
 {
 	printf(
-"usage: %s [user@]host:[dir] mountpoint [options]\n"
+"usage: %s mountpoint [options]\n"
 "\n"
 "    -h   --help            print help\n"
 "    -V   --version         print version\n"
@@ -3611,7 +3611,7 @@ static void usage(const char *progname)
 "    -d, --debug            print some debugging information (implies -f)\n"
 "    -v, --verbose          print ssh replies and messages\n"
 "    -o dir_cache=BOOL      enable caching of directory contents (names,\n"
-"                           attributes, symlink targets) {yes,no} (default: yes)\n"
+"                           attributes, symlink targets) {yes,no} (default: no)\n"
 "    -o dcache_max_size=N   sets the maximum size of the directory cache (default: 10000)\n"
 "    -o dcache_timeout=N    sets timeout for directory cache in seconds (default: 20)\n"
 "    -o dcache_{stat,link,dir}_timeout=N\n"
@@ -3644,7 +3644,7 @@ static void usage(const char *progname)
 "    -o ssh_protocol=N      ssh protocol to use (default: 2)\n"
 "    -o sftp_server=SERV    path to sftp server or subsystem (default: sftp)\n"
 "    -o directport=PORT     directly connect to PORT bypassing ssh\n"
-"    -o passive             communicate over stdin and stdout bypassing network\n"
+"    -o passive             communicate over stdin and stdout bypassing network (default)\n"
 "    -o disable_hardlink    link(2) will return with errno set to ENOSYS\n"
 "    -o transform_symlinks  transform absolute symlinks to relative\n"
 "    -o follow_symlinks     follow symlinks on the server\n"
@@ -4192,14 +4192,14 @@ int main(int argc, char *argv[])
 	sshfs.progname = argv[0];
 	sshfs.max_conns = 1;
 	sshfs.ptyfd = -1;
-	sshfs.dir_cache = 1;
+	sshfs.dir_cache = 0;
 	sshfs.show_help = 0;
 	sshfs.show_version = 0;
 	sshfs.singlethread = 0;
 	sshfs.foreground = 0;
 	sshfs.ptypassivefd = -1;
 	sshfs.delay_connect = 0;
-	sshfs.passive = 0;
+	sshfs.passive = 1;
 	sshfs.detect_uid = 0;
 	if (strcmp(IDMAP_DEFAULT, "none") == 0) {
 		sshfs.idmap = IDMAP_NONE;
@@ -4221,7 +4221,7 @@ int main(int argc, char *argv[])
 		exit(1);
 
 	if (sshfs.show_version) {
-		printf("SSHFS version %s\n", PACKAGE_VERSION);
+		printf("QVMFS version %s\n", PACKAGE_VERSION);
 		printf("FUSE library version %s\n", fuse_pkgversion());
 #if !defined(__CYGWIN__)
 		fuse_lowlevel_version();
@@ -4233,8 +4233,8 @@ int main(int argc, char *argv[])
 		usage(args.argv[0]);
 		fuse_lib_help(&args);
 		exit(0);
-	} else if (!sshfs.host) {
-		fprintf(stderr, "missing host\n");
+	} else if (sshfs.host) {
+		fprintf(stderr, "wrong parameters\n");
 		fprintf(stderr, "see `%s -h' for usage\n", argv[0]);
 		exit(1);
 	} else if (!sshfs.mountpoint) {
@@ -4242,6 +4242,9 @@ int main(int argc, char *argv[])
 		fprintf(stderr, "see `%s -h' for usage\n", argv[0]);
 		exit(1);
 	}
+
+	const char* default_host = "localhost:/";
+	sshfs.host = strdup(default_host);
 
 	if (sshfs.idmap == IDMAP_USER)
 		sshfs.detect_uid = 1;
