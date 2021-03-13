@@ -1,16 +1,18 @@
 # qvm-mount
 
-A tool to mount remote directorys in your local Qubes VM.
+A tool to mount directories accross Qubes VMs.
 
 ```
-Usage: qvm-mount <remote-vm>:<remote-path> <local-path>
+Usage: qvm-mount <qube-name>:<remote-path> <local-path>
 
-Mounts remote directory if you confirm in dom0.
+Mounts remote directory after you confirm in dom0.
 ```
 
 ## Installation
 
-Compile it yourself. First install the required tools:
+Compile it yourself. 
+
+First install the required tools (assuming a debian or ubuntu machine or vm):
 ```
 sudo apt install build-essential ninja-build python3-pip libfuse3-dev libglib2.0-dev fuse3 autoconf libssl-dev gdb
 pip3 install --user meson
@@ -18,14 +20,11 @@ pip3 install --user meson
 
 Then compile:
 ```
+mkdir -p builddir
 cd builddir
-meson compile # Client
-cd ..
-cd openssh-portable-V_8_5_P1
-autoreconf
-./configure CFLAGS='-O0 -ggdb'
-make
+meson compile
 ```
+
 
 ## Testing (local)
 ```
