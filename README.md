@@ -34,8 +34,8 @@ mkfifo sftp-out
 mkdir source
 mkdir target
 # root privileges for chroot
-sudo ./openssh-portable-V_8_5_P1/sftp-server -l DEBUG3 -e -D source < sftp-in > sftp-out
-./builddir/client -o passive -o debug -o dir_cache=no localhost:/home/user/git/qvm-mount/source ./target > ./sftp-in < ./sftp-out
+sudo ./builddir/server/server -l DEBUG3 -e -D /tmp < sftp-in > sftp-out
+./builddir/client -o passive -o debug -o dir_cache=no localhost:/ ./target > ./sftp-in < ./sftp-out
 ```
 
 ## Debugging (local)
@@ -44,8 +44,8 @@ mkfifo sftp-in
 mkfifo sftp-out
 mkdir source
 mkdir target
-gdb ./openssh-portable-V_8_5_P1/sftp-server 
-(gdb) run -D /tmp < sftp-in > sftp-out
+gdb ./builddir/server/server
+(gdb) run -l DEBUG3 -e -D /tmp < sftp-in > sftp-out
 ./builddir/client -o passive -o debug -o dir_cache=no localhost:/ ./target > ./sftp-in < ./sftp-out
 ```
 

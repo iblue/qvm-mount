@@ -37,15 +37,7 @@
 #include <stddef.h>  /* for wchar_t */
 
 /* OpenBSD function replacements */
-#include "base64.h"
-#include "sigact.h"
-#include "readpassphrase.h"
 #include "vis.h"
-#include "getrrsetbyname.h"
-#include "sha1.h"
-#include "sha2.h"
-#include "md5.h"
-#include "blf.h"
 #include "fnmatch.h"
 
 #if defined(HAVE_LOGIN_CAP) && !defined(HAVE_LOGIN_GETPWCLASS)
@@ -174,11 +166,6 @@ void compat_init_setproctitle(int argc, char *argv[]);
 int getgrouplist(const char *, gid_t, gid_t *, int *);
 #endif
 
-#if !defined(HAVE_GETOPT) || !defined(HAVE_GETOPT_OPTRESET)
-int BSDgetopt(int argc, char * const *argv, const char *opts);
-#include "openbsd-compat/getopt.h"
-#endif
-
 #if ((defined(HAVE_DECL_READV) && HAVE_DECL_READV == 0) || \
     (defined(HAVE_DECL_WRITEV) && HAVE_DECL_WRITEV == 0))
 # include <sys/types.h>
@@ -195,11 +182,6 @@ int writev(int, struct iovec *, int);
 
 /* Home grown routines */
 #include "bsd-misc.h"
-#include "bsd-setres_id.h"
-#include "bsd-signal.h"
-#include "bsd-statvfs.h"
-#include "bsd-waitpid.h"
-#include "bsd-poll.h"
 
 #if defined(HAVE_DECL_GETPEEREID) && HAVE_DECL_GETPEEREID == 0
 int getpeereid(int , uid_t *, gid_t *);
@@ -332,19 +314,6 @@ struct tm *localtime_r(const time_t *, struct tm *);
 
 char *xcrypt(const char *password, const char *salt);
 char *shadow_pw(struct passwd *pw);
-
-/* rfc2553 socket API replacements */
-#include "fake-rfc2553.h"
-
-/* Routines for a single OS platform */
-#include "bsd-cygwin_util.h"
-
-#include "port-aix.h"
-#include "port-irix.h"
-#include "port-linux.h"
-#include "port-solaris.h"
-#include "port-net.h"
-#include "port-uw.h"
 
 /* _FORTIFY_SOURCE breaks FD_ISSET(n)/FD_SET(n) for n > FD_SETSIZE. Avoid. */
 #if defined(HAVE_FEATURES_H) && defined(_FORTIFY_SOURCE)

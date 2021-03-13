@@ -250,15 +250,6 @@ void	sshbuf_dump_data(const void *s, size_t len, FILE *f);
 /* Return the hexadecimal representation of the contents of the buffer */
 char	*sshbuf_dtob16(struct sshbuf *buf);
 
-/* Encode the contents of the buffer as base64 */
-char	*sshbuf_dtob64_string(const struct sshbuf *buf, int wrap);
-int	sshbuf_dtob64(const struct sshbuf *d, struct sshbuf *b64, int wrap);
-/* RFC4648 "base64url" encoding variant */
-int	sshbuf_dtourlb64(const struct sshbuf *d, struct sshbuf *b64, int wrap);
-
-/* Decode base64 data and append it to the buffer */
-int	sshbuf_b64tod(struct sshbuf *buf, const char *b64);
-
 /*
  * Tests whether the buffer contains the specified byte sequence at the
  * specified offset. Returns 0 on successful match, or a ssherr.h code

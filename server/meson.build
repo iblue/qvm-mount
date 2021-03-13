@@ -1,5 +1,2 @@
-cc = meson.get_compiler('c')
-dir_base = meson.current_source_dir()
-dir_openbsd_compat = join_paths(dir_base, 'openbsd-compat')
-openbsd_compat = cc.find_library('openbsd-compat', dirs: dir_openbsd_compat)
-executable('server', ['sftp-common.c', 'sftp-server.c', 'sftp-server-main.c', 'xmalloc.c', 'sshbuf.c', 'ssherr.c',  'log.c', 'misc.c', 'match.c', 'sshbuf-getput-basic.c', 'fatal.c', 'sftp-realpath.c', 'sshbuf-misc.c', 'platform-misc.c', 'addrmatch.c', 'addr.c'], dependencies: openbsd_compat)
+executable('server', ['sftp-common.c', 'sftp-server.c', 'sftp-server-main.c', 'xmalloc.c', 'sshbuf.c', 'ssherr.c',  'log.c', 'misc.c', 'match.c', 'sshbuf-getput-basic.c', 'fatal.c', 'sftp-realpath.c', 'sshbuf-misc.c', 'platform-misc.c', 'addrmatch.c', 'addr.c', 
+'openbsd-compat/freezero.c', 'openbsd-compat/strlcpy.c', 'openbsd-compat/strmode.c', 'openbsd-compat/strlcat.c', 'openbsd-compat/strtonum.c', 'openbsd-compat/pwcache.c', 'openbsd-compat/fmt_scaled.c', 'openbsd-compat/bsd-misc.c', 'openbsd-compat/recallocarray.c', 'openbsd-compat/bsd-closefrom.c', 'openbsd-compat/vis.c', 'openbsd-compat/port-net.c', 'openbsd-compat/timingsafe_bcmp.c'])

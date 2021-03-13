@@ -3,4 +3,4 @@ if [ -z "$1" ]; then
   echo "ERROR: Directory missing"
   exit 1
 fi
-/home/user/git/qvm-mount/openssh-portable-V_8_5_P1/sftp-server -R -D "$1"
+/home/user/git/qvm-mount/builddir/server/server -R -D "$1"

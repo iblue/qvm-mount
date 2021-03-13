@@ -1,1 +1,0 @@
-cc -o sftp-server sftp-common.o sftp-server.o sftp-server-main.o xmalloc.o sshbuf.o ssherr.o log.o misc.o match.o sshbuf-getput-basic.o fatal.o sftp-realpath.o sshbuf-misc.o platform-misc.o addrmatch.o addr.o -L. -Lopenbsd-compat/  -Wl,-z,relro -Wl,-z,now -Wl,-z,noexecstack -fstack-protector-strong -pie  -lopenbsd-compat 

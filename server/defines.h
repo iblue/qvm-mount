@@ -611,6 +611,7 @@ struct winsize {
 # define HAVE_GETADDRINFO
 #endif
 
+/*
 #ifndef HAVE_GETOPT_OPTRESET
 # undef getopt
 # undef opterr
@@ -625,6 +626,7 @@ struct winsize {
 # define optreset           BSDoptreset
 # define optarg             BSDoptarg
 #endif
+*/
 
 #if defined(BROKEN_GETADDRINFO) && defined(HAVE_GETADDRINFO)
 # undef HAVE_GETADDRINFO
