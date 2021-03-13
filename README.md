@@ -15,13 +15,14 @@ Compile it yourself.
 First install the required tools (assuming a debian or ubuntu machine or vm):
 ```
 sudo apt install build-essential ninja-build python3-pip libfuse3-dev libglib2.0-dev fuse3 autoconf libssl-dev gdb
-pip3 install --user meson
+sudo pip3 install meson
 ```
 
 Then compile and install
 ```
 mkdir -p builddir
 cd builddir
+meson configure --preifx /usr
 meson compile
 meson install
 ```
@@ -33,7 +34,7 @@ mkfifo sftp-out
 mkdir source
 mkdir target
 # root privileges for chroot
-sudo ./builddir/server/server -l DEBUG3 -e -D /tmp < sftp-in > sftp-out
+sudo ./builddir/server/qvmfs-server -l DEBUG3 -e /tmp < sftp-in > sftp-out
 ./builddir/client/qvmfs-client ./target > ./sftp-in < ./sftp-out
 ```
 
@@ -43,8 +44,8 @@ mkfifo sftp-in
 mkfifo sftp-out
 mkdir source
 mkdir target
-gdb ./builddir/server/server
-(gdb) run -l DEBUG3 -e -D /tmp < sftp-in > sftp-out
+gdb ./builddir/server/qvmfs-server
+(gdb) run -l DEBUG3 -e /tmp < sftp-in > sftp-out
 ./builddir/client/qvmfs-client -o debug ./target > ./sftp-in < ./sftp-out
 ```
 

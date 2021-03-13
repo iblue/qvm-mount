@@ -1,0 +1,42 @@
+#!/bin/sh
+
+# FIXME: Argument for readonly
+
+usage()
+{
+  echo "Usage: qvm-mount <qube-name>:<remote-path> <local-path>"
+  echo
+  echo "Mounts remote directory after you confirm in dom0."
+  exit 1
+}
+
+if [ -z "$1" ] || [ -z "$2" ]; then
+    usage
+fi
+
+REMOTE_QUBE="$(echo "$1" | cut -d':' -f1)"
+REMOTE_PATH="$(echo "$1" | cut -d':' -f2-)"
+LOCAL_PATH="$2"
+
+if [ -z "$REMOTE_QUBE" ] || [ -z "$REMOTE_PATH" ] || [ -z "$LOCAL_PATH" ]; then
+    usage
+fi
+
+PIPE=$(mktemp -u)
+mkfifo $PIPE.stdin
+mkfifo $PIPE.stdout
+
+# Welcome to the realm of undocumented testing features
+if [ "$REMOTE_QUBE" = "localhost" ]; then
+    # Server needs to run as root for chroot()
+    sudo qvmfs-server "$REMOTE_PATH" <$PIPE.stdin >$PIPE.stdout &
+else
+    # FIXME: qrexec something
+    0;
+fi
+
+qvmfs-client "$LOCAL_PATH" >$PIPE.stdin <$PIPE.stdout &
+
+# Pipes can be deleted once connected
+rm $PIPE.stdin
+rm $PIPE.stdout

@@ -1598,7 +1598,6 @@ sftp_server_usage(void)
 		"usage: %s [options] mountpoint\n"
 		"\n"
 		"    -h   --help            print help\n"
-		"    -e                     log to stderr\n"
 		"    -R                     serve readonly\n"
 		"    -f log_facility        log to specified log_facility\n"
 		"    -l log_level           Set specified log level (see below)\n"
@@ -1614,7 +1613,7 @@ int
 sftp_server_main(int argc, char **argv, struct passwd *user_pw)
 {
 	fd_set *rset, *wset;
-	int r, in, out, max, ch, skipargs = 0, log_stderr = 0;
+	int r, in, out, max, ch, skipargs = 0, log_stderr = 1;
 	ssize_t len, olen, set_size;
 	SyslogFacility log_facility = SYSLOG_FACILITY_AUTH;
 	char *cp, *homedir = NULL, buf[4*4096];
@@ -1641,10 +1640,8 @@ sftp_server_main(int argc, char **argv, struct passwd *user_pw)
 			 */
 			skipargs = 1;
 			break;
-		case 'e':
-			log_stderr = 1;
-			break;
 		case 'l':
+			log_stderr = 0;
 			log_level = log_level_number(optarg);
 			if (log_level == SYSLOG_LEVEL_NOT_SET)
 				error("Invalid log level \"%s\"", optarg);
@@ -1712,13 +1709,6 @@ sftp_server_main(int argc, char **argv, struct passwd *user_pw)
 
 	rset = xcalloc(howmany(max + 1, NFDBITS), sizeof(fd_mask));
 	wset = xcalloc(howmany(max + 1, NFDBITS), sizeof(fd_mask));
-
-    fprintf(stderr, "DEBUG\n");
-	if(homedir == NULL) {
-		fprintf(stderr, "homedir is NULL\n");
-	} else {
-		fprintf(stderr, "homedir is %s\n", homedir);
-	}
 
 	if (homedir != NULL) {		
 		if (chdir(homedir) != 0) {
