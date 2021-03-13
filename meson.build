@@ -1,5 +1,5 @@
 project('qvm-mount', 'c')
 subdir('client')
 subdir('server')
-install_data(sources: 'rpc/qubes.MountReadwrite', install_dir: '/etc/qubes-rpc')
+install_data(sources: 'rpc/qubes.MountReadWrite', install_dir: '/etc/qubes-rpc')
 install_data(sources: 'bin/qvm-mount', install_dir: '/usr/bin')

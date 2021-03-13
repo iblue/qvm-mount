@@ -1,6 +1,0 @@
-#!/bin/sh
-if [ -z "$1" ]; then
-  echo "ERROR: Directory missing"
-  exit 1
-fi
-/home/user/git/qvm-mount/builddir/server/server -D "$1"

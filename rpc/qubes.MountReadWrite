@@ -1,0 +1,13 @@
+#!/bin/sh
+if [ -z "$1" ]; then
+  echo "ERROR: Directory missing"
+  exit 1
+fi
+
+# BUGBUG
+# There is an issue that qrexec replaces / by _, which is not that 
+# useful when dealing with files.
+#DIR=$1
+DIR=$(echo "$1" | sed 's+_+/+g')
+
+sudo /usr/bin/qvmfs-server "$DIR"
