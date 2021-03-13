@@ -3591,7 +3591,7 @@ static struct fuse_operations sshfs_oper = {
 
 static void usage(const char *progname)
 {
-	printf(
+	fprintf(stderr,
 "usage: %s mountpoint [options]\n"
 "\n"
 "    -h   --help            print help\n"

@@ -1595,11 +1595,18 @@ sftp_server_usage(void)
 	extern char *__progname;
 
 	fprintf(stderr,
-	    "usage: %s [-ehR] [-d start_directory] [-f log_facility] "
-	    "[-l log_level]\n\t[-P denied_requests] "
-	    "[-p allowed_requests] [-u umask]\n"
-	    "       %s -Q protocol_feature\n",
-	    __progname, __progname);
+		"usage: %s [options] mountpoint\n"
+		"\n"
+		"    -h   --help            print help\n"
+		"    -e                     log to stderr\n"
+		"    -R                     serve readonly\n"
+		"    -f log_facility        log to specified log_facility\n"
+		"    -l log_level           Set specified log level (see below)\n"
+		"    -u umask               Set umask\n"
+		"\n"
+		"    Values for log_level are {QUIET, FATAL, ERROR, INFO, VERBOSE, DEBUG, DEBUG1, DEBUG2, DEBUG3}\n",
+     	__progname);
+
 	exit(1);
 }
 
@@ -1607,10 +1614,10 @@ int
 sftp_server_main(int argc, char **argv, struct passwd *user_pw)
 {
 	fd_set *rset, *wset;
-	int i, r, in, out, max, ch, skipargs = 0, log_stderr = 0;
+	int r, in, out, max, ch, skipargs = 0, log_stderr = 0;
 	ssize_t len, olen, set_size;
 	SyslogFacility log_facility = SYSLOG_FACILITY_AUTH;
-	char *cp, *homedir = NULL, uidstr[32], buf[4*4096];
+	char *cp, *homedir = NULL, buf[4*4096];
 	long mask;
 
 	//extern char *optarg;
@@ -1622,19 +1629,8 @@ sftp_server_main(int argc, char **argv, struct passwd *user_pw)
 	pw = pwcopy(user_pw);
 
 	while (!skipargs && (ch = getopt(argc, argv,
-	    "D:f:l:P:p:Q:u:cehR")) != -1) {
+	    "f:l:P:p:Q:u:cehR")) != -1) {
 		switch (ch) {
-		case 'Q':
-			if (strcasecmp(optarg, "requests") != 0) {
-				fprintf(stderr, "Invalid query type\n");
-				exit(1);
-			}
-			for (i = 0; handlers[i].handler != NULL; i++)
-				printf("%s\n", handlers[i].name);
-			for (i = 0; extended_handlers[i].handler != NULL; i++)
-				printf("%s\n", extended_handlers[i].name);
-			exit(0);
-			break;
 		case 'R':
 			readonly = 1;
 			break;
@@ -1658,26 +1654,6 @@ sftp_server_main(int argc, char **argv, struct passwd *user_pw)
 			if (log_facility == SYSLOG_FACILITY_NOT_SET)
 				error("Invalid log facility \"%s\"", optarg);
 			break;
-		/* Changed to upper case to prevent security issues
-		   when wrong version is installed */
-		case 'D':
-			cp = tilde_expand_filename(optarg, user_pw->pw_uid);
-			snprintf(uidstr, sizeof(uidstr), "%llu",
-			    (unsigned long long)pw->pw_uid);
-			homedir = percent_expand(cp, "d", user_pw->pw_dir,
-			    "u", user_pw->pw_name, "U", uidstr, (char *)NULL);
-			free(cp);
-			break;
-		case 'p':
-			if (request_allowlist != NULL)
-				fatal("Permitted requests already set");
-			request_allowlist = xstrdup(optarg);
-			break;
-		case 'P':
-			if (request_denylist != NULL)
-				fatal("Refused requests already set");
-			request_denylist = xstrdup(optarg);
-			break;
 		case 'u':
 			errno = 0;
 			mask = strtol(optarg, &cp, 8);
@@ -1690,6 +1666,13 @@ sftp_server_main(int argc, char **argv, struct passwd *user_pw)
 		default:
 			sftp_server_usage();
 		}
+	}
+
+	// Get non-option value for homedir
+	if(optind+1 != argc) {
+		sftp_server_usage();
+	} else {
+		homedir = strdup(argv[optind]);
 	}
 
 	log_init(__progname, log_level, log_facility, log_stderr);
