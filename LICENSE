@@ -1,3 +1,8 @@
-TODO
+The client part in client/ is copied from sshfs and is licensed under the GNU
+GPL2, the details can be found in client/LICENSE.
 
-I don't know. Look at the files. They are copied from various projects.
+The server part in server/ is copied from openssh-portable and is licensed
+under various licenses, the details are listed in server/LICENSE.
+
+For my modifications and the other scripts, you can choose between the two, 
+whatever suits you best.
