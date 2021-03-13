@@ -1613,7 +1613,7 @@ sftp_server_main(int argc, char **argv, struct passwd *user_pw)
 	char *cp, *homedir = NULL, uidstr[32], buf[4*4096];
 	long mask;
 
-	extern char *optarg;
+	//extern char *optarg;
 	extern char *__progname;
 
 	__progname = ssh_get_progname(argv[0]);
@@ -1622,7 +1622,7 @@ sftp_server_main(int argc, char **argv, struct passwd *user_pw)
 	pw = pwcopy(user_pw);
 
 	while (!skipargs && (ch = getopt(argc, argv,
-	    "d:f:l:P:p:Q:u:cehR")) != -1) {
+	    "D:f:l:P:p:Q:u:cehR")) != -1) {
 		switch (ch) {
 		case 'Q':
 			if (strcasecmp(optarg, "requests") != 0) {
@@ -1694,17 +1694,6 @@ sftp_server_main(int argc, char **argv, struct passwd *user_pw)
 
 	log_init(__progname, log_level, log_facility, log_stderr);
 
-	/*
-	 * On platforms where we can, avoid making /proc/self/{mem,maps}
-	 * available to the user so that sftp access doesn't automatically
-	 * imply arbitrary code execution access that will break
-	 * restricted configurations.
-	 */
-	platform_disable_tracing(1);	/* strict */
-
-	/* Drop any fine-grained privileges we don't need */
-	platform_pledge_sftp_server();
-
 	if ((cp = getenv("SSH_CONNECTION")) != NULL) {
 		client_addr = xstrdup(cp);
 		if ((cp = strchr(client_addr, ' ')) == NULL) {
@@ -1741,7 +1730,14 @@ sftp_server_main(int argc, char **argv, struct passwd *user_pw)
 	rset = xcalloc(howmany(max + 1, NFDBITS), sizeof(fd_mask));
 	wset = xcalloc(howmany(max + 1, NFDBITS), sizeof(fd_mask));
 
-	if (homedir != NULL) {
+    fprintf(stderr, "DEBUG\n");
+	if(homedir == NULL) {
+		fprintf(stderr, "homedir is NULL\n");
+	} else {
+		fprintf(stderr, "homedir is %s\n", homedir);
+	}
+
+	if (homedir != NULL) {		
 		if (chdir(homedir) != 0) {
 			error("chdir to \"%s\" failed: %s", homedir,
 			    strerror(errno));
@@ -1750,8 +1746,22 @@ sftp_server_main(int argc, char **argv, struct passwd *user_pw)
 		if(chroot(homedir) != 0) {
 			error("chroot to \"%s\" failed: %s", homedir, 
 				strerror(errno));
+			exit(4);
 		}
 	}
+
+	/*
+	 * On platforms where we can, avoid making /proc/self/{mem,maps}
+	 * available to the user so that sftp access doesn't automatically
+	 * imply arbitrary code execution access that will break
+	 * restricted configurations.
+	 */
+	// FIXME: Disabled for debugging
+	//platform_disable_tracing(1);	/* strict */
+
+	/* Drop any fine-grained privileges we don't need */
+	// FIXME: Disabled for testing
+	//platform_pledge_sftp_server();
 
 	set_size = howmany(max + 1, NFDBITS) * sizeof(fd_mask);
 	for (;;) {

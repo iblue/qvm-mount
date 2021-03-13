@@ -12,7 +12,7 @@ Mounts remote directory if you confirm in dom0.
 
 Compile it yourself. First install the required tools:
 ```
-sudo apt install build-essential ninja-build python3-pip libfuse3-dev libglib2.0-dev fuse3 autoconf libssl-dev
+sudo apt install build-essential ninja-build python3-pip libfuse3-dev libglib2.0-dev fuse3 autoconf libssl-dev gdb
 pip3 install --user meson
 ```
 
@@ -23,8 +23,19 @@ meson compile # Client
 cd ..
 cd openssh-portable-V_8_5_P1
 autoreconf
-./configure
+./configure CFLAGS='-O0 -ggdb'
 make
+```
+
+## Testing (local)
+```
+mkfifo sftp-in
+mkfifo sftp-out
+mkdir source
+mkdir target
+# root privileges for chroot
+sudo ./openssh-portable-V_8_5_P1/sftp-server -l DEBUG3 -e -D source < sftp-in > sftp-out
+./builddir/client -o passive -o debug -o dir_cache=no localhost:/home/user/git/qvm-mount/source ./target > ./sftp-in < ./sftp-out
 ```
 
 ## Debugging (local)
@@ -33,8 +44,9 @@ mkfifo sftp-in
 mkfifo sftp-out
 mkdir source
 mkdir target
-./openssh-portable-V_8_5_P1/sftp-server -d source < sftp-in > sftp-out
-./builddir/client -o passive -o debug -o dir_cache=no localhost:/home/user/git/qvm-mount/source ./target > ./sftp-in < ./sftp-out
+gdb ./openssh-portable-V_8_5_P1/sftp-server 
+(gdb) run -D /tmp < sftp-in > sftp-out
+./builddir/client -o passive -o debug -o dir_cache=no localhost:/ ./target > ./sftp-in < ./sftp-out
 ```
 
 ## Debugging (remote)
