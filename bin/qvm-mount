@@ -1,14 +1,22 @@
 #!/bin/sh
 
-# FIXME: Argument for readonly
-
 usage()
 {
-  echo "Usage: qvm-mount <qube-name>:<remote-path> <local-path>"
-  echo
-  echo "Mounts remote directory after you confirm in dom0."
-  exit 1
+	echo "Usage: qvm-mount [-R] <qube-name>:<remote-path> <local-path>"
+	echo
+	echo "    -R       Mount remote-path readonly"
+	echo
+	echo "Mounts remote directory after you confirm in dom0."
+	exit 1
 }
+
+if [ "$1" = "-R" ]; then
+	READONLY=1
+	shift
+else
+	READONLY=0
+fi
+
 
 if [ -z "$1" ] || [ -z "$2" ]; then
     usage
@@ -19,22 +27,20 @@ REMOTE_PATH="$(echo "$1" | cut -d':' -f2-)"
 LOCAL_PATH="$2"
 
 if [ -z "$REMOTE_QUBE" ] || [ -z "$REMOTE_PATH" ] || [ -z "$LOCAL_PATH" ]; then
-    usage
+	usage
 fi
 
 PIPE=$(mktemp -u)
 mkfifo $PIPE.stdin
 mkfifo $PIPE.stdout
 
-if [ "$REMOTE_QUBE" = "localhost" ]; then
-    # Welcome to the realm of undocumented testing features
-    # Server needs to run as root for chroot()
-    sudo qvmfs-server "$REMOTE_PATH" <$PIPE.stdin >$PIPE.stdout &
+if [ "$READONLY" -eq "0" ]; then
+	qrexec-client-vm "$REMOTE_QUBE" "qubes.MountReadWrite+$REMOTE_PATH" <$PIPE.stdin >$PIPE.stdout &
+	qvmfs-client "$LOCAL_PATH" >$PIPE.stdin <$PIPE.stdout &
 else
-    qrexec-client-vm "$REMOTE_QUBE" "qubes.MountReadWrite+$REMOTE_PATH" <$PIPE.stdin >$PIPE.stdout &
+	qrexec-client-vm "$REMOTE_QUBE" "qubes.MountReadOnly+$REMOTE_PATH" <$PIPE.stdin >$PIPE.stdout &
+	qvmfs-client -o ro "$LOCAL_PATH" >$PIPE.stdin <$PIPE.stdout &
 fi
-
-qvmfs-client "$LOCAL_PATH" >$PIPE.stdin <$PIPE.stdout &
 
 # Pipes can be deleted once connected
 rm $PIPE.stdin
