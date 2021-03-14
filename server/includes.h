@@ -111,9 +111,7 @@
 
 #include <netinet/in.h>
 #include <netinet/in_systm.h> /* For typedefs */
-#ifdef HAVE_RPC_TYPES_H
-# include <rpc/types.h> /* For INADDR_LOOPBACK */
-#endif
+
 #ifdef USE_PAM
 #if defined(HAVE_SECURITY_PAM_APPL_H)
 # include <security/pam_appl.h>
@@ -162,10 +160,6 @@
 # ifdef _INCLUDE__STDC__
 #  undef _INCLUDE__STDC__
 # endif
-#endif
-
-#ifdef WITH_OPENSSL
-#include <openssl/opensslv.h> /* For OPENSSL_VERSION_NUMBER */
 #endif
 
 #include "defines.h"
