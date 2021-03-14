@@ -6,25 +6,35 @@ A tool to mount directories accross Qubes VMs.
 
 Compile it yourself. 
 
-First install the required tools (assuming a debian or ubuntu machine or vm):
+First install the required tools:
+
+### Debian/Ubuntu:
 ```
-sudo apt install build-essential ninja-build python3-pip libfuse3-dev libglib2.0-dev fuse3 autoconf libssl-dev gdb
+sudo apt install build-essential ninja-build python3-pip libfuse3-dev libglib2.0-dev fuse3 # Debian 10
+sudo pip3 install meson
+```
+
+### Fedora
+```
+sudo dnf install gcc ninja-build python3-pip fuse3-devel glib2-devel fuse3
 sudo pip3 install meson
 ```
 
 Then compile and install
 ```
-mkdir -p builddir
+meson builddir
 cd builddir
-meson configure --preifx /usr
+meson configure --prefix /usr
 meson compile
-meson install
+sudo meson install
 ```
 
 ## Usage
 
 ```
-Usage: qvm-mount <qube-name>:<remote-path> <local-path>
+Usage: qvm-mount [-R] <qube-name>:<remote-path> <local-path>
+
+    -R       Mount remote-path readonly
 
 Mounts remote directory after you confirm in dom0.
 ```
@@ -43,15 +53,11 @@ There are two Qubes involved. A client and a server. The server is an SFTP serve
 
 ### Is this production-safe?
 
-Probably not. I hacked this together in a few days and I didn't test it that much.
+Probably not.
 
 ### Is it secure?
 
-Probably yes.
-
-### Will it support read-only mounts?
-
-Yes, soon.
+Probably not.
 
 ## Debugging and Testing
 
