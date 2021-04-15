@@ -1,0 +1,4 @@
+* Allow permanent mounts (by inserting into rc.local files, like in qvm-portfwd)
+* Strip unneeded code from client/server
+* Add support for Qubes 4.1 Qrexec
+* Add test suite, sign code
