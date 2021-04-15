@@ -36,10 +36,10 @@ mkfifo $PIPE.stdout
 
 if [ "$READONLY" -eq "0" ]; then
 	qrexec-client-vm "$REMOTE_QUBE" "qubes.MountReadWrite+$REMOTE_PATH" <$PIPE.stdin >$PIPE.stdout &
-	qvmfs-client "$LOCAL_PATH" >$PIPE.stdin <$PIPE.stdout &
+	qvmfs-client -o allow_other "$LOCAL_PATH" >$PIPE.stdin <$PIPE.stdout &
 else
 	qrexec-client-vm "$REMOTE_QUBE" "qubes.MountReadOnly+$REMOTE_PATH" <$PIPE.stdin >$PIPE.stdout &
-	qvmfs-client -o ro "$LOCAL_PATH" >$PIPE.stdin <$PIPE.stdout &
+	qvmfs-client -o ro,allow_other "$LOCAL_PATH" >$PIPE.stdin <$PIPE.stdout &
 fi
 
 # Pipes can be deleted once connected
